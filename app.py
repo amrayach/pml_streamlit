@@ -31,6 +31,24 @@ if model_in == 'Yelp-Review-Polarity':
     st.dataframe(dataframe.style.highlight_max(axis=0))
 
 else:
-    prediction, probs = deploy.predict_probs(sentence, model='yelp')
-    #st.dataframe(str(prediction))
+    prediction, probs = deploy.predict_probs(sentence, model='ag_news')
+    st.text('--------------------------------')
+    if prediction == 0:
+        st.text("The Prediction is World")
+    elif prediction == 1:
+        st.text("The Prediction is Sports")
+
+    elif prediction == 2:
+        st.text("The Prediction is Business")
+
+    else:
+        st.text("The Prediction is Sci/Tech")
+    st.text('--------------------------------')
+    st.text('Class Probabilities:')
+
+    dataframe = pd.DataFrame(
+        np.array([probs]),
+        columns=('World', 'Sports', 'Business', 'Sci/Tech'))
+    st.dataframe(dataframe.style.highlight_max(axis=0))
+
 
