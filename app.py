@@ -25,7 +25,6 @@ def to_rgba(hex, val):
     hex = hex + "{:02x}".format(val)
     return hex
 
-nlp = spacy.load("en_core_web_sm")
 
 deploy = ModelsDeploy()
 
