@@ -18,9 +18,15 @@ from spacy_streamlit.util import get_svg
 from spacy.displacy import parse_ents, parse_deps
 from spacy_streamlit import visualize_ner
 
-
 _html = {}
 RENDER_WRAPPER = None
+
+def to_rgba(hex, val):
+    val = int(val * 1000)
+    val = abs(val)
+    val = 255 if val > 255 else val
+    hex = hex + "{:02x}".format(val)
+    return hex
 
 def render_old(
     docs, style="dep", page=False, minify=False, jupyter=None, options={}, manual=False
@@ -74,7 +80,6 @@ model_in = st.selectbox('Models:', ['Yelp-Review-Polarity', 'AG-News-Category-Cl
 
 sentence = st.text_input('Enter Sentence:', value="Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
 
-
 if model_in == 'Yelp-Review-Polarity':
     prediction, probs, heatmap = deploy.explain(sentence, model='yelp')
     st.text('--------------------------------')
@@ -92,29 +97,28 @@ if model_in == 'Yelp-Review-Polarity':
 
     #doc = nlp("Some text")
     #ents = list(doc.ents)
-    words = list(filter(lambda x: x != '', list(heatmap.keys())))
+    words = [i[0] for i in heatmap]
+    vals = [i[1] for i in heatmap]
     spaces = [True] * (len(words) - 1)
     spaces.append(False)
     doc = Doc(nlp.vocab, words=words, spaces=spaces)
 
     ents = []
+    tags = []
     for j, i in enumerate(doc):
         new_ent = Span(doc, j, j + 1, label=str(j))
         ents.append(new_ent)
-
+        tags.append(str(j))
 
     doc.ents = []
     doc.ents = ents
 
+    sum = sum(vals)
+    vals = [v*100/sum for v in vals]
 
+    col_library = {'positive': '#FF0000', 'negative': '#0000FF'}
+    colors = [to_rgba(col_library['positive'], x) if x >= 0 else to_rgba(col_library['negative'], x) for x in vals]
 
-    tags = ['0', '2', '3', '4', '5', 'State_of_health',
-            'Process', 'Medication', 'Time_information', 'Local_specification', 'Biological_chemistry',
-            'Biological_parameter', 'Dosing', 'Person', 'Medical_specification', 'Medical_device', 'Body_Fluid',
-            'Degree', 'Tissue']
-    colors = ['#E8DAEF', '#85C1E9', '#FAD7A0', '#ABEBC6', '#F7DC6F', '#F9E79F', '#A9DFBF', '#7FB3D5', '#F5B041',
-              '#AED6F1', '#82E0AA', '#F4D03F', '#58D68D', '#A2D9CE', '#F8C471', '#D2B4DE', '#D7BDE2', '#76D7C4',
-              '#614ec2', '#f59b47']
     tags = tuple(list(map(lambda x: ''.join(list(map(lambda y: y.upper(), x.split('_')))), tags)))
     col_dict = {}
     for i in range(len(tags)):
