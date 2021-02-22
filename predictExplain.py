@@ -38,30 +38,32 @@ class ModelsDeploy(object):
 
     def generate_word_rel_vals(self, text, heatmap):
 
-        word_rel_vals = {}
+        word_rel_vals = []
         word = ''
         val = 0
         for i in range(len(text)):
             if text[i] == ' ':
-                print(' ')
+                #print(' ')
                 try:
-                    word_rel_vals[word] = val / len(word)
+                    word_rel_vals.append((word, val/ len(word)))
+                    #word_rel_vals[word] = val / len(word)
                 except:
-                    word_rel_vals[word] = val
-
+                    word_rel_vals.append((word, val))
+                    #word_rel_vals[word] = val
                 word = ""
                 val = 0
             else:
                 word += text[i]
                 val += torch.sum(heatmap[:, i]).item()
-                print(text[i], torch.sum(heatmap[:, i]).item())
+                #print(text[i], torch.sum(heatmap[:, i]).item())
+
 
         try:
-            word_rel_vals[word] = val / len(word)
+            word_rel_vals.append((word, val / len(word)))
+            #word_rel_vals[word] = val / len(word)
         except:
-            word_rel_vals[word] = val
-
-
+            word_rel_vals.append((word, val))
+            #word_rel_vals[word] = val
 
         return word_rel_vals
 
@@ -99,6 +101,7 @@ class ModelsDeploy(object):
         probs = probs.cpu().numpy().tolist()[0]
 
         word_rels_vals = self.generate_word_rel_vals(sentence, heatmap[0])
+        word_rels_vals = list(filter(lambda x: x[0] != '', word_rels_vals))
 
         return pred, probs, word_rels_vals
 
@@ -108,6 +111,7 @@ def main():
     obj = ModelsDeploy()
     #a, b = obj.predict_probs("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
     a, b, c = obj.explain("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
+
     print()
 
 
