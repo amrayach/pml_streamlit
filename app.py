@@ -1,21 +1,8 @@
-import base64
-import os
-import streamlit as st
 from predictExplain import ModelsDeploy
 import numpy as np
 import pandas as pd
-import spacy
-from spacy.tokens import Span
 import streamlit as st
-from typing import Optional
-from spacy import displacy
-from spacy.displacy import DependencyRenderer, EntityRenderer
 from spacy.tokens import Doc, Span
-from spacy.errors import Errors, Warnings
-import warnings
-import re
-from spacy_streamlit.util import get_svg
-from spacy.displacy import parse_ents, parse_deps
 from spacy_streamlit import visualize_ner
 
 def to_rgba(hex, val):
@@ -121,7 +108,6 @@ else:
     sum = sum(vals)
     vals = [v * 100 / sum for v in vals]
     threshold = np.mean(vals)
-    print(heatmap)
     col_library = {'positive': '#FF0000', 'negative': '#0000FF'}
     colors = [to_rgba(col_library['positive'], x) if x >= threshold else to_rgba(col_library['negative'], x) for x in vals]
 
