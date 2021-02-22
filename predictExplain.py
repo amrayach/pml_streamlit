@@ -4,7 +4,6 @@ import torch
 from innvestigator import InnvestigateModel
 import spacy
 
-
 args = configparser.ConfigParser()
 args.read('argsConfig.ini')
 
@@ -14,7 +13,7 @@ class ModelsDeploy(object):
         self.ag_news_model = CharacterLevelCNN(4, args)
         self.ag_news_model_checkpoint = torch.load('AgNewsModel1.pt', map_location=torch.device('cpu'))
         self.ag_news_model.load_state_dict(self.ag_news_model_checkpoint['state_dict'])
-        self.ag_news_lrp = InnvestigateModel(self.ag_news_model, lrp_exponent=2, method="e-rule", beta=.5)
+        self.ag_news_lrp = InnvestigateModel(self.ag_news_model, lrp_exponent=1, method="e-rule", beta=.5)
 
         self.yelp_model = CharacterLevelCNN(2, args)
         self.yelp_model_checkpoint = torch.load('YelpModel.pt', map_location=torch.device('cpu'))
@@ -23,7 +22,6 @@ class ModelsDeploy(object):
         self.alphabet = args.get('DataSet', 'alphabet')
         self.l0 = args.getint('DataSet', 'l0')
         self.nlp = spacy.load("en_core_web_sm-2.3.1")
-
 
     def oneHotEncode(self, sentence):
         # X = (batch, 70, sequence_length)
@@ -44,27 +42,33 @@ class ModelsDeploy(object):
         val = 0
         for i in range(len(text)):
             if text[i] == ' ':
-                #print(' ')
-                try:
-                    word_rel_vals.append((word, val/ len(word)))
-                    #word_rel_vals[word] = val / len(word)
-                except:
-                    word_rel_vals.append((word, val))
-                    #word_rel_vals[word] = val
+                # print(' ')
+                # try:
+                # word_rel_vals.append((word, val / len(word)))
+                #    word_rel_vals.append((word, val))
+                # word_rel_vals[word] = val / len(word)
+                # except:
+                #    word_rel_vals.append((word, val))
+                # word_rel_vals[word] = val
+                word_rel_vals.append((word, val))
+
                 word = ""
                 val = 0
             else:
                 word += text[i]
                 val += torch.sum(heatmap[:, i]).item()
-                #print(text[i], torch.sum(heatmap[:, i]).item())
+                # print(text[i], torch.sum(heatmap[:, i]).item())
 
+        word_rel_vals.append((word, val))
 
-        try:
-            word_rel_vals.append((word, val / len(word)))
-            #word_rel_vals[word] = val / len(word)
-        except:
-            word_rel_vals.append((word, val))
-            #word_rel_vals[word] = val
+        # try:
+        # word_rel_vals.append((word, val / len(word)))
+        #    word_rel_vals.append((word, val))
+
+        # word_rel_vals[word] = val / len(word)
+        # except:
+        #    word_rel_vals.append((word, val))
+        # word_rel_vals[word] = val
 
         return word_rel_vals
 
@@ -79,13 +83,11 @@ class ModelsDeploy(object):
             with torch.no_grad():
                 predictions = self.ag_news_model(input_tensor)
 
-
         pred = torch.max(predictions, 1)[1].cpu().numpy().tolist()[0]
         probs = torch.exp(predictions) * 100
         probs = probs.cpu().numpy().tolist()[0]
 
         return pred, probs
-
 
     def explain(self, sentence, model='yelp'):
         input_tensor = self.oneHotEncode(sentence)
@@ -95,7 +97,6 @@ class ModelsDeploy(object):
             predictions, heatmap = self.yelp_lrp.innvestigate(in_tensor=input_tensor)
         else:
             predictions, heatmap = self.ag_news_lrp.innvestigate(in_tensor=input_tensor)
-
 
         pred = torch.max(predictions, 1)[1].cpu().numpy().tolist()[0]
         probs = torch.exp(predictions) * 100
@@ -107,11 +108,11 @@ class ModelsDeploy(object):
         return pred, probs, word_rels_vals
 
 
-
 def main():
     obj = ModelsDeploy()
-    #a, b = obj.predict_probs("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
-    a, b, c = obj.explain("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
+    # a, b = obj.predict_probs("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
+    a, b, c = obj.explain(
+        "Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
 
     print()
 
