@@ -14,7 +14,7 @@ class ModelsDeploy(object):
         self.ag_news_model = CharacterLevelCNN(4, args)
         self.ag_news_model_checkpoint = torch.load('AgNewsModel1.pt', map_location=torch.device('cpu'))
         self.ag_news_model.load_state_dict(self.ag_news_model_checkpoint['state_dict'])
-        self.ag_news_lrp = InnvestigateModel(self.ag_news_model, lrp_exponent=1, method="e-rule", beta=.5)
+        self.ag_news_lrp = InnvestigateModel(self.ag_news_model, lrp_exponent=2, method="e-rule", beta=.5)
 
         self.yelp_model = CharacterLevelCNN(2, args)
         self.yelp_model_checkpoint = torch.load('YelpModel.pt', map_location=torch.device('cpu'))
@@ -36,6 +36,34 @@ class ModelsDeploy(object):
     def char2Index(self, character):
         return self.alphabet.find(character)
 
+    def generate_word_rel_vals(self, text, heatmap):
+
+        word_rel_vals = {}
+        word = ''
+        val = 0
+        for i in range(len(text)):
+            if text[i] == ' ':
+                print(' ')
+                try:
+                    word_rel_vals[word] = val / len(word)
+                except:
+                    word_rel_vals[word] = val
+
+                word = ""
+                val = 0
+            else:
+                word += text[i]
+                val += torch.sum(heatmap[:, i]).item()
+                print(text[i], torch.sum(heatmap[:, i]).item())
+
+        try:
+            word_rel_vals[word] = val / len(word)
+        except:
+            word_rel_vals[word] = val
+
+
+
+        return word_rel_vals
 
     def predict_probs(self, sentence, model='yelp'):
         input_tensor = self.oneHotEncode(sentence)
@@ -56,13 +84,30 @@ class ModelsDeploy(object):
         return pred, probs
 
 
+    def explain(self, sentence, model='yelp'):
+        input_tensor = self.oneHotEncode(sentence)
+        input_tensor = torch.unsqueeze(input_tensor, 0)
+
+        if model == 'yelp':
+            predictions, heatmap = self.yelp_lrp.innvestigate(in_tensor=input_tensor)
+        else:
+            predictions, heatmap = self.ag_news_lrp.innvestigate(in_tensor=input_tensor)
+
+
+        pred = torch.max(predictions, 1)[1].cpu().numpy().tolist()[0]
+        probs = torch.exp(predictions) * 100
+        probs = probs.cpu().numpy().tolist()[0]
+
+        word_rels_vals = self.generate_word_rel_vals(sentence, heatmap[0])
+
+        return pred, probs, word_rels_vals
 
 
 
 def main():
     obj = ModelsDeploy()
-    a, b = obj.predict_probs("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
-
+    #a, b = obj.predict_probs("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
+    a, b, c = obj.explain("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
     print()
 
 
