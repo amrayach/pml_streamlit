@@ -31,7 +31,7 @@ deploy = ModelsDeploy()
 
 st.title('Character-Level CNN Predict & Explain:')
 st.text('Select Model:')
-model_in = st.selectbox('Models:', ['Yelp-Review-Polarity', 'AG-News-Category-Classifier'], index=1)
+model_in = st.selectbox('Models:', ['Yelp-Review-Polarity', 'AG-News-Category-Classifier'], index=0)
 
 
 sentence = st.text_input('Enter Sentence:', value="Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
@@ -51,13 +51,12 @@ if model_in == 'Yelp-Review-Polarity':
         columns=('Negative', 'Positive'))
     st.dataframe(dataframe.style.highlight_max(axis=0))
 
-    #doc = nlp("Some text")
-    #ents = list(doc.ents)
+
     words = [i[0] for i in heatmap]
     vals = [i[1] for i in heatmap]
     spaces = [True] * (len(words) - 1)
     spaces.append(False)
-    doc = Doc(nlp.vocab, words=words, spaces=spaces)
+    doc = Doc(deploy.nlp.vocab, words=words, spaces=spaces)
 
     ents = []
     tags = []
@@ -81,12 +80,6 @@ if model_in == 'Yelp-Review-Polarity':
         col_dict[tags[i]] = colors[i]
 
     visualize_ner(doc, labels=tags, colors=col_dict)
-
-    #with open('sample_heatmap.pdf', "rb") as f:
-    #    base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    #pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
-    #st.markdown(pdf_display, unsafe_allow_html=True)
-    #st.latex(open('basic.tex', encoding='utf8').read())
 
 else:
     prediction, probs, heatmap = deploy.explain(sentence, model='ag_news')
@@ -114,7 +107,7 @@ else:
     vals = [i[1] for i in heatmap]
     spaces = [True] * (len(words) - 1)
     spaces.append(False)
-    doc = Doc(nlp.vocab, words=words, spaces=spaces)
+    doc = Doc(deploy.nlp.vocab, words=words, spaces=spaces)
 
     ents = []
     tags = []

@@ -2,7 +2,7 @@ import configparser
 from model import CharacterLevelCNN
 import torch
 from innvestigator import InnvestigateModel
-
+import spacy
 
 
 args = configparser.ConfigParser()
@@ -22,6 +22,7 @@ class ModelsDeploy(object):
         self.yelp_lrp = InnvestigateModel(self.yelp_model, lrp_exponent=1, method="e-rule", beta=.5)
         self.alphabet = args.get('DataSet', 'alphabet')
         self.l0 = args.getint('DataSet', 'l0')
+        self.nlp = spacy.load("en_core_web_sm-2.3.1")
 
 
     def oneHotEncode(self, sentence):
