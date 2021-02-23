@@ -6,7 +6,7 @@ from spacy.tokens import Doc, Span
 from spacy_streamlit import visualize_ner
 
 def to_rgba(hex, val):
-    val = int(val * 20)
+    val = int(val)
     val = abs(val)
     val = 255 if val > 255 else val
     hex = hex + "{:02x}".format(val)
@@ -17,10 +17,12 @@ deploy = ModelsDeploy()
 
 st.title('Character-Level CNN Predict & Explain:')
 st.text('Select Model:')
-model_in = st.selectbox('Models:', ['Yelp-Review-Polarity', 'AG-News-Category-Classifier'], index=0)
+model_in = st.selectbox('Models:', ['Yelp-Review-Polarity', 'AG-News-Category-Classifier'], index=1)
 
 
 sentence = st.text_input('Enter Sentence:', value="Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
+
+col_library = {'positive': '#FF0000', 'negative': '#0000FF'}
 
 if model_in == 'Yelp-Review-Polarity':
     prediction, probs, heatmap = deploy.explain(sentence, model='yelp')
@@ -54,10 +56,6 @@ if model_in == 'Yelp-Review-Polarity':
     doc.ents = []
     doc.ents = ents
 
-    sum = sum(vals)
-    vals = [v*100/sum for v in vals]
-
-    col_library = {'positive': '#FF0000', 'negative': '#0000FF'}
     colors = [to_rgba(col_library['positive'], x) if x >= 0 else to_rgba(col_library['negative'], x) for x in vals]
 
     tags = tuple(list(map(lambda x: ''.join(list(map(lambda y: y.upper(), x.split('_')))), tags)))
@@ -94,7 +92,7 @@ else:
     spaces = [True] * (len(words) - 1)
     spaces.append(False)
     doc = Doc(deploy.nlp.vocab, words=words, spaces=spaces)
-
+    print(heatmap)
     ents = []
     tags = []
     for j, i in enumerate(doc):
@@ -105,11 +103,7 @@ else:
     doc.ents = []
     doc.ents = ents
 
-    sum = sum(vals)
-    vals = [v * 100 / sum for v in vals]
-    threshold = np.mean(vals)
-    col_library = {'positive': '#FF0000', 'negative': '#0000FF'}
-    colors = [to_rgba(col_library['positive'], x) if x >= threshold else to_rgba(col_library['negative'], x) for x in vals]
+    colors = [to_rgba(col_library['positive'], x) if x >= 0 else to_rgba(col_library['negative'], x) for x in vals]
 
     tags = tuple(list(map(lambda x: ''.join(list(map(lambda y: y.upper(), x.split('_')))), tags)))
     col_dict = {}
