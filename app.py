@@ -97,23 +97,7 @@ for i in range(len(heatmap)):
 heatmap_neg = list(sorted(list(filter(lambda x: x[1] < 0, heatmap)), key=lambda x: x[1]))
 heatmap_pos = list(sorted(list(filter(lambda x: x[1] >= 0, heatmap)), key=lambda x: x[1], reverse=True))
 
-"""
-pos_ents = st.number_input('Show Top x Positive Entities:', 0, len(heatmap_pos), 0)
-neg_ents = st.number_input('Show Top x Negative Entities:', 0, len(heatmap_neg), 0)
-pos_ents = st.slider('blabla', 0, len(heatmap_pos), 0)
 
-tags2 = []
-col_dict2 = {}
-
-for i in range(pos_ents):
-    tags2.append(heatmap_pos[i][2])
-    col_dict2[heatmap_pos[i][2]] = col_dict[heatmap_pos[i][2]]
-
-
-for i in range(neg_ents):
-    tags2.append(heatmap_neg[i][2])
-    col_dict2[heatmap_neg[i][2]] = col_dict[heatmap_neg[i][2]]
-"""
 
 visualize_ner(doc, labels=tags, colors=col_dict, title='Character2Word Attention Heatmap:')
 
