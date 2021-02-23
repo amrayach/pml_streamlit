@@ -110,11 +110,9 @@ class ModelsDeploy(object):
 
 def main():
     obj = ModelsDeploy()
-    # a, b = obj.predict_probs("Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
     a, b, c = obj.explain(
         "Like any Barnes & Noble, it has a nice comfy cafe, and a large selection of books.  The staff is very friendly and helpful.  They stock a decent selection, and the prices are pretty reasonable.  Obviously it's hard for them to compete with Amazon.  However since all the small shop bookstores are gone, it's nice to walk into one every once in a while.")
 
-    print()
 
 
 if __name__ == '__main__':
