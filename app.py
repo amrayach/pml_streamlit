@@ -6,7 +6,7 @@ from spacy.tokens import Doc, Span
 from spacy_streamlit import visualize_ner
 
 def to_rgba(hex, val):
-    val = int(val)
+    val = int(val) * 10
     val = abs(val)
     val = 255 if val > 255 else val
     hex = hex + "{:02x}".format(val)
@@ -101,18 +101,6 @@ for i in range(len(heatmap)):
 heatmap_neg = list(sorted(list(filter(lambda x: x[1] < 0, heatmap)), key=lambda x: x[1]))
 heatmap_pos = list(sorted(list(filter(lambda x: x[1] >= 0, heatmap)), key=lambda x: x[1], reverse=True))
 
-visualize_ner(doc, labels=tags, colors=col_dict, show_table=False, title='Character2Word Attention Heatmap:')
-
-top_n_words = st.slider('Choose the number of most popular words in text', 0, slider_range, slider_start_value if slider_start_value<=slider_range else slider_range)
-
-def get_top_idx(vals, top_n_words):
-    idx = sorted(range(len(vals)), key=lambda i: vals[i])[-top_n_words:]
-    print("for ", top_n_words)
-    print("got ", idx)
-    return idx
-idx_most_pop_words = get_top_idx(vals, top_n_words)
-
-tags = [tags[i] for i in idx_most_pop_words]
-visualize_ner(doc, labels=tags, colors=col_dict, show_table=True, title='most popular words:')
+visualize_ner(doc, labels=tags, colors=col_dict, show_table=True, title='Character2Word Attention Heatmap:')
 
 
